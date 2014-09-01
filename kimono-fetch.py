@@ -31,14 +31,24 @@ def main():
     offset = 0
     stayInLoop = True
     extras = ""
+    readJSON = None
     while stayInLoop:
         f = urllib.urlopen(baseURL + "&kimoffset=" + str(offset) + "&kimlimit=" + str(limit) + extras)
         if args.json:
             readBuffer = f.read()
-            print readBuffer
-            readJSON = json.loads(readBuffer)
-            if readJSON["count"] < limit:
-                stayInLoop = False
+            if readJSON is None:
+                readJSON = json.loads(readBuffer)
+                linesRead = readJSON["count"]
+                if linesRead < limit:
+                    stayInLoop = False
+            else:
+                temp = json.loads(readBuffer)
+                readJSON["results"]["collection1"].extend(temp["results"]["collection1"])
+                linesRead = linesRead + temp["count"]
+                if temp["count"] < limit:
+                    stayInLoop = False
+            if not stayInLoop:
+                readJSON["count"] = linesRead
         elif args.csv:
             readBuffer = f.readlines()
             numLines = len(readBuffer) - 4 #we've got two header lines and two footer lines that inflate the record count
@@ -52,7 +62,8 @@ def main():
 
         offset +=  limit
 
-
+    if args.json:
+        print json.dumps(readJSON)
 
 if __name__ == "__main__":
     main()
