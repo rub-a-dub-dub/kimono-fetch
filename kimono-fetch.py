@@ -51,7 +51,10 @@ def main():
                 readJSON["count"] = linesRead
         elif args.csv:
             readBuffer = f.readlines()
-            numLines = len(readBuffer) - 4 #we've got two header lines and two footer lines that inflate the record count
+            if not extras:
+                numLines = len(readBuffer) - 4 #we've got two header lines and two footer lines that inflate the record count
+            else:
+                numLines = len(readBuffer) - 2
             for line in readBuffer:
                 if (not '"Pagination"' in line) or (len(line) <= 1):
                     print line,
